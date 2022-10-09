@@ -104,7 +104,7 @@ func TestApp_Route(t *testing.T) {
 				stack: map[string]Route{
 					"xpto.topic.create": {Handlers: fakeHandlers[0:1]},
 					"xpto.topic.update": {Handlers: fakeHandlers[0:2]},
-					"xpto.topic.delete": {Handlers: fakeHandlers[0:2]},
+					"xpto.topic.delete": {Handlers: fakeHandlers[1:2]},
 				},
 			},
 		},
