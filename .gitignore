@@ -1,3 +1,9 @@
+# development tools
+.cover/
+__debug_bin
+.history
+.vscode
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
