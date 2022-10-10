@@ -1,11 +1,13 @@
 package mocks
 
-import pubsub "github.com/eduardoths/pub-sub"
+import (
+	pubsub "github.com/eduardoths/pub-sub"
+)
 
 type MockListener struct {
-	done      chan error
-	doneError error
-	messages  []pubsub.Message
+	done        chan error
+	shutdownErr error
+	messages    []pubsub.Message
 }
 
 func NewMockListener(messages ...pubsub.Message) *MockListener {
@@ -15,25 +17,20 @@ func NewMockListener(messages ...pubsub.Message) *MockListener {
 }
 
 func (ml *MockListener) WithShutdown(err error) *MockListener {
-	ml.doneError = err
+	ml.shutdownErr = err
 	return ml
 }
 
-func (ml *MockListener) Listen(messages chan<- pubsub.Message, done chan error) {
-	ml.done = done
+func (ml *MockListener) Listen(messages chan<- pubsub.Message, done <-chan error) error {
 	for {
 		select {
-		case <-ml.done:
-			return
+		case err := <-done:
+			return err
 		default:
 			for _, msg := range ml.messages {
 				messages <- msg
 			}
-			ml.done <- ml.doneError
+			return ml.shutdownErr
 		}
 	}
-}
-
-func (ml *MockListener) Shutdown(err error) {
-	ml.doneError = err
 }

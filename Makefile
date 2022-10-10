@@ -13,7 +13,7 @@ GOTOOL ?= $(GO) tool
 
 DIR_COVER ?= ./.cover
 GO_COVERPKG ?= ./...
-COVER_IGNORED_FILES = "tests\|examples/"
+COVER_IGNORED_FILES = "tests\|examples/\|mocks/"
 
 #-----------------------------------------#
 # Files
