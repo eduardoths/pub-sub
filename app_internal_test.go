@@ -66,7 +66,7 @@ func TestApp_Route(t *testing.T) {
 			},
 		},
 		{
-			It: "should append one handlers at a route that already exists",
+			It: "should append one handler at a route that already exists",
 			In: in{
 				app:      New(),
 				topic:    "xpto.topic.create",
@@ -76,7 +76,6 @@ func TestApp_Route(t *testing.T) {
 				in.app.stack["xpto.topic.create"] = Route{
 					Handlers: fakeHandlers[0:1],
 				}
-
 			},
 			Want: out{
 				stack: map[string]Route{
@@ -110,19 +109,21 @@ func TestApp_Route(t *testing.T) {
 		},
 	}
 
-	ts.Run(t, func(t *testing.T, scenario resources.UnitTestCase[in, out]) {
-		if scenario.Before != nil {
-			scenario.Before(t, &scenario.In)
-		}
-		actual := out{}
-		scenario.In.app.Route(scenario.In.topic, scenario.In.handlers...)
-		actual.stack = scenario.In.app.stack
+	for _, scenario := range ts {
+		t.Run(scenario.It, func(t *testing.T) {
+			if scenario.Before != nil {
+				scenario.Before(t, &scenario.In)
+			}
+			actual := out{}
+			scenario.In.app.Route(scenario.In.topic, scenario.In.handlers...)
+			actual.stack = scenario.In.app.stack
 
-		assert.Len(t, actual.stack, len(scenario.Want.stack))
-		for k, v := range scenario.Want.stack {
-			assertRoute(t, v, actual.stack[k])
-		}
-	})
+			assert.Len(t, actual.stack, len(scenario.Want.stack))
+			for k, v := range scenario.Want.stack {
+				assertRoute(t, v, actual.stack[k])
+			}
+		})
+	}
 }
 
 func assertRoute(t *testing.T, want Route, actual Route) bool {
