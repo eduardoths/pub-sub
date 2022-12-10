@@ -1,6 +1,6 @@
 package pubsub
 
-type Handler = func(c *Context) error
+type Handler func(c *Context) error
 
 type App struct {
 	stack    map[string]Route
@@ -47,9 +47,10 @@ func (a *App) routeMessage(msg Message) {
 		return
 	}
 
-	c := Context{}
-
-	if len(route.Handlers) > 0 {
-		route.Handlers[0](&c)
+	c := &Context{
+		index:    -1,
+		handlers: route.Handlers,
+		Message:  msg,
 	}
+	c.Next()
 }

@@ -66,4 +66,68 @@ func TestApp_Listen(t *testing.T) {
 		app := makeApp(mockListener)
 		assert.NoError(t, app.Listen())
 	})
+
+	t.Run("it should run multiple handlers", func(t *testing.T) {
+		t.Parallel()
+		const TOPIC_NAME = "example.topic.test"
+
+		var (
+			firstCounter  uint
+			secondCounter uint
+			firstMessage  = []byte("firstMessage")
+			secondMessage = []byte("secondMessage")
+		)
+
+		firstHandler := func(c *pubsub.Context) error {
+			firstCounter++
+			assert.Equal(t, firstMessage, c.Message.Data)
+			assert.Equal(t, TOPIC_NAME, c.Message.Topic)
+			c.Message.Data = secondMessage
+			return c.Next()
+		}
+
+		secondHandler := func(c *pubsub.Context) error {
+			secondCounter++
+			assert.Equal(t, secondMessage, c.Message.Data)
+			assert.Equal(t, TOPIC_NAME, c.Message.Topic)
+			return nil
+		}
+
+		mockListener := mocks.NewMockListener(pubsub.Message{
+			Topic: TOPIC_NAME,
+			Data:  firstMessage,
+		})
+
+		app := makeApp(mockListener)
+		app.Route(TOPIC_NAME, firstHandler, secondHandler)
+		assert.NoError(t, app.Listen())
+		assert.EqualValues(t, 1, firstCounter)
+		assert.EqualValues(t, 1, secondCounter)
+	})
+
+	t.Run("it should return nil if there are no more handlers", func(t *testing.T) {
+		t.Parallel()
+		const TOPIC_NAME = "example.topic.test"
+
+		var (
+			firstCounter uint
+			firstMessage = []byte("firstMessage")
+		)
+
+		firstHandler := func(c *pubsub.Context) error {
+			firstCounter++
+			assert.Equal(t, firstMessage, c.Message.Data)
+			assert.Equal(t, TOPIC_NAME, c.Message.Topic)
+			return c.Next()
+		}
+
+		mockListener := mocks.NewMockListener(pubsub.Message{
+			Topic: TOPIC_NAME,
+			Data:  firstMessage,
+		})
+
+		app := makeApp(mockListener)
+		app.Route(TOPIC_NAME, firstHandler)
+		assert.NoError(t, app.Listen())
+	})
 }
