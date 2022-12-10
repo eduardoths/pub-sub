@@ -9,24 +9,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func makeApp(listener pubsub.Listener) *pubsub.App {
+	return pubsub.New(pubsub.Config{
+		Listener: listener,
+	})
+}
+
 func TestApp_Listen(t *testing.T) {
 	t.Parallel()
 	t.Run("it should be shut down without returning error", func(t *testing.T) {
 		t.Parallel()
-		app := pubsub.New()
 		mockListener := mocks.NewMockListener().
 			WithShutdown(nil)
-		app.Listener = mockListener
+		app := makeApp(mockListener)
 		assert.NoError(t, app.Listen())
 	})
 
 	t.Run("it should be shut down returning an error", func(t *testing.T) {
 		t.Parallel()
-		app := pubsub.New()
 		err := errors.New("test-error")
 		mockListener := mocks.NewMockListener().
 			WithShutdown(err)
-		app.Listener = mockListener
+		app := makeApp(mockListener)
 		assert.Equal(t, err, app.Listen())
 	})
 
@@ -36,18 +40,16 @@ func TestApp_Listen(t *testing.T) {
 		var callCount uint
 		mockHandler := func(c *pubsub.Context) error {
 			callCount += 1
-			assert.Equal(t, &pubsub.Context{}, c)
 			return nil
 		}
 
-		app := pubsub.New()
-		app.Route(TOPIC_NAME, mockHandler)
 		mockListener := mocks.NewMockListener(
 			pubsub.Message{
 				Topic: TOPIC_NAME,
 			},
 		)
-		app.Listener = mockListener
+		app := makeApp(mockListener)
+		app.Route(TOPIC_NAME, mockHandler)
 		assert.NoError(t, app.Listen())
 		assert.Equal(t, uint(1), callCount, "handler called times mismatch")
 	})
@@ -56,13 +58,12 @@ func TestApp_Listen(t *testing.T) {
 		t.Parallel()
 		const TOPIC_NAME = "inexistent"
 
-		app := pubsub.New()
 		mockListener := mocks.NewMockListener(
 			pubsub.Message{
 				Topic: TOPIC_NAME,
 			},
 		)
-		app.Listener = mockListener
+		app := makeApp(mockListener)
 		assert.NoError(t, app.Listen())
 	})
 }
