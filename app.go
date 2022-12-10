@@ -1,15 +1,16 @@
 package pubsub
 
-type Handler = func(c *Context) error
+type Handler func(c *Context) error
 
 type App struct {
 	stack    map[string]Route
-	Listener Listener
+	listener Listener
 }
 
-func New() *App {
+func New(config Config) *App {
 	return &App{
-		stack: make(map[string]Route),
+		stack:    make(map[string]Route),
+		listener: config.Listener,
 	}
 }
 
@@ -27,7 +28,7 @@ func (a *App) Listen() error {
 	messages := make(chan Message)
 	done := make(chan error, 1)
 	go func() {
-		done <- a.Listener.Listen(messages, done)
+		done <- a.listener.Listen(messages, done)
 	}()
 
 	for {
@@ -46,9 +47,10 @@ func (a *App) routeMessage(msg Message) {
 		return
 	}
 
-	c := Context{}
-
-	if len(route.Handlers) > 0 {
-		route.Handlers[0](&c)
+	c := &Context{
+		index:    -1,
+		handlers: route.Handlers,
+		Message:  msg,
 	}
+	c.Next()
 }

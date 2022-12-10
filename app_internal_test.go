@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func makeApp() *App {
+	return New(Config{
+		Listener: nil,
+	})
+}
+
 func TestApp_Route(t *testing.T) {
 	t.Parallel()
 	type in struct {
@@ -29,7 +35,7 @@ func TestApp_Route(t *testing.T) {
 		{
 			It: "should add a route without any handlers",
 			In: in{
-				app:      New(),
+				app:      makeApp(),
 				topic:    "xpto.topic.create",
 				handlers: nil,
 			},
@@ -42,7 +48,7 @@ func TestApp_Route(t *testing.T) {
 		{
 			It: "should append one handler",
 			In: in{
-				app:      New(),
+				app:      makeApp(),
 				topic:    "xpto.topic.create",
 				handlers: []Handler{fakeHandlers[0]},
 			},
@@ -55,7 +61,7 @@ func TestApp_Route(t *testing.T) {
 		{
 			It: "should append two handlers",
 			In: in{
-				app:      New(),
+				app:      makeApp(),
 				topic:    "xpto.topic.create",
 				handlers: fakeHandlers[0:2],
 			},
@@ -68,7 +74,7 @@ func TestApp_Route(t *testing.T) {
 		{
 			It: "should append one handler at a route that already exists",
 			In: in{
-				app:      New(),
+				app:      makeApp(),
 				topic:    "xpto.topic.create",
 				handlers: fakeHandlers[1:2],
 			},
@@ -86,7 +92,7 @@ func TestApp_Route(t *testing.T) {
 		{
 			It: "should append handlers to another topic",
 			In: in{
-				app:      New(),
+				app:      makeApp(),
 				topic:    "xpto.topic.delete",
 				handlers: fakeHandlers[1:2],
 			},
